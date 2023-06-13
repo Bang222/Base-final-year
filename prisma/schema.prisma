@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgres"
+  url      = env("DATABASE_URL")
+  shadowDatabaseUrl = env("DATABASE_URL_Replication")
+}
+
+model User {
+      id                 String          @id @default(uuid())
+      userName           String          @unique
+      hasPassword        String
+      sex                SEX
+      roles              ROLES[]        @default([USER])
+      firstName          String
+      lastName           String
+      email              String          @unique
+      isEmailValidated   Boolean         @default(false)
+      address            String
+      phone              String
+      IsAdmin            Boolean?        @default(false)
+      modified           DateTime?
+      createdTime        DateTime?       @default(now())
+      DateOfBirth        DateTime?
+      profilePicture     String?         @default("https://preview.redd.it/rrz3hmsxcll71.png?width=640&crop=smart&auto=webp&s=87cc5ed38d8f088ef9fffef7a4c5756b64309d6a")
+      status             STATUS?         @default(IsActive)
+      store              Store?
+      orders             Order[]
+      reviews            Reviewer[]
+      carts              Cart[]
+      FollowerOfTrips    FollowerOfTrip[]
+}
+model Store {
+     id                  String              @id @default(uuid())
+     name                String
+     slogan              String
+     status              STATUS?             @default(IsActive)
+     isActive            Boolean?            @default(false)
+     user                User                @relation(fields: [userId], references: [id])
+     userId              String              @unique
+     trip                Trip[]
+     followerOfTrip      FollowerOfTrip[]
+}
+model Trip {
+    id                   String              @id @default(uuid())
+    name                 String
+    description          String
+    price                Decimal
+    quantity             Int
+    phone                String
+    address              String
+    createdTime          String?
+    modified             DateTime?
+    imageUrl             String?
+    lastRegisterDate     DateTime?
+    startDate            DateTime?           @default(now())
+    endDate              DateTime?
+    isActive             Boolean?            @default(false)
+    status               STATUS?             @default(IsActive)
+    followerOfTrip       FollowerOfTrip[]
+    storeId              String
+    store Store          @relation(fields: [storeId], references: [id])
+    review               Reviewer[]
+    orderDetails        OrderDetail[]
+    carts               Cart[]
+}
+model Order {
+    id                   String              @id @default(uuid())
+    orderDate            DateTime?            @default(now())
+    totalPrice           Decimal
+    userId               String
+    user User            @relation(fields: [userId], references: [id])
+    orderDetails         OrderDetail[]
+}
+model Cart {
+    id                   String          @id @default(uuid())
+    userId               String
+    user                 User            @relation(fields: [userId], references: [id])
+    tripId               String
+    trip                 Trip            @relation(fields: [tripId], references: [id])
+    status               STATUS?         @default(IsActive)
+    quantity             Int
+    isActive             Boolean         @default(true)
+}
+model OrderDetail {
+    id                   String              @id @default(uuid())
+    quantity             Int
+    orderId  String
+    order Order @relation(fields: [orderId], references: [id])
+    tripId  String
+    trip Trip @relation(fields: [tripId], references: [id])
+    isActive Boolean? @default(true)
+}
+model FollowerOfTrip {
+    id                   String              @id @default(uuid())
+    storeId              String
+    store                Store               @relation(fields: [storeId], references: [id])
+    isActive             Boolean @default(true)
+    tripId               String
+    trip                 Trip                @relation(fields: [tripId], references: [id])
+    userId               String?
+    user                 User?                @relation(fields: [userId], references: [id])
+}
+model Reviewer{
+     id         String         @id @default(uuid())
+     userId     String?
+     user       User?          @relation(fields: [userId], references: [id])
+     tripId     String?
+     trip       Trip?          @relation(fields: [tripId], references: [id])
+     content    String?
+     anonymous  Boolean?
+     vote       Int?
+     isActive   Boolean?       @default(true)
+}
+enum STATUS {
+  Pending
+  IsActive
+  Finished
+}
+enum ROLES {
+ USER
+ ADMIN
+ STAFF
+ SELLER
+}
+enum SEX {
+ MAN
+ WOMAN
+ LGBT
+ LEG
+}
